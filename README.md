@@ -1,57 +1,102 @@
-# Smart AI-Media Pipeline 
-### *Automated Serverless Image Processing with Amazon Rekognition*
+#  Smart AI-Driven Media Pipeline (Serverless Quarantine)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Serverless-FF9900?style=for-the-badge&logo=serverless&logoColor=white" />
-  <img src="https://img.shields.io/badge/DynamoDB-4053D6?style=for-the-badge&logo=amazondynamodb&logoColor=white" />
-</p>
+<div align="center">
+  
+  ![AWS - Rekognition](https://img.shields.io/badge/AWS-Rekognition-orange?style=for-the-badge&logo=amazon-aws)
+  ![AWS - Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900?style=for-the-badge&logo=amazon-lambda&logoColor=white)
+  ![Python - 3.12](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python)
+  ![Status - Production Ready](https://img.shields.io/badge/Status-Complete-green?style=for-the-badge)
 
----
-
-##  Navigation
-[ Overview](#overview) | [Architecture](#architecture) | [ Tech Stack](#tech-stack) | [ Implementation](#implementation) | [Results](#results) | [Security](#security)
+</div>
 
 ---
 
-<a name="overview"></a>
 ##  Project Overview
-This 3rd-year vocational project demonstrates a **Cloud-Native Event-Driven Architecture**. By leveraging AWS Lambda and Rekognition, I've built a system that eliminates manual image tagging, reducing processing time to **<400ms** per file.
-<a name="architecture"></a>
+Manual content moderation is a significant bottleneck for modern web platforms. This project implements an **Automated Cyber-Defense System** that acts as a real-time "Digital Security Guard." Using AI-driven analysis, the pipeline identifies policy-violating images (e.g., violence, weapons) and executes an instant **Incident Response** by isolating the threat.
+
+> **Key Impact:** Reduces the "Mean Time to React" (MTTR) to harmful content from minutes to milliseconds.
+
+---
+
 ##  System Architecture
-The pipeline is fully serverless, ensuring **High Availability** and **Auto-Scaling**.
+The solution is built on a **Cloud-Native, Serverless Architecture** to ensure zero server management and infinite scalability.
+
+
+
+---
+
+##  Technical Implementation
 
 <details>
-<summary><b>View Architecture Flow Details (Click to Expand)</b></summary>
+<summary><b>Phase 1: Event-Driven Logic & Sanitization</b></summary>
 
-1. **Trigger:** `S3:PutObject` event notification.
-2. **Compute:** `AWS Lambda` environment initialized.
-3. **AI Layer:** `Amazon Rekognition` performs deep-learning feature extraction.
-4. **Storage:** NoSQL metadata storage in `Amazon DynamoDB`.
-5. **Messaging:** Asynchronous notification via `Amazon SNS`.
-
+The process begins with an **S3 Event Notification**. When a file is uploaded, a JSON event triggers the Lambda function.
+* **Problem:** Filenames with spaces or special characters often cause API errors.
+* **Solution:** I implemented `urllib.parse.unquote_plus` to decode and sanitize filenames before processing.
 </details>
-<a name="implementation"></a>
-##  Implementation Highlights
 
-###  The Brain (AWS Lambda)
-The Python function is optimized for **Performance** and **Cold Starts**.
+<details>
+<summary><b>Phase 2: AI-Powered Policy Enforcement</b></summary>
 
-| Feature | Implementation | Benefit |
-| :--- | :--- | :--- |
-| **Parsing** | `urllib.parse.unquote_plus` | Handles spaces and special characters in filenames. |
-| **AI Filter** | `MinConfidence: 80` | Filters out "noise" and low-accuracy AI guesses. |
-| **Concurrency** | Serverless | Handles 1000+ uploads simultaneously. |
-<a name="results"></a>
-##  Testing Results
-The pipeline was validated using a variety of test cases.
+I utilized the `detect_moderation_labels` API from **Amazon Rekognition**. 
+* **Logic:** The AI scans for 10+ categories of unsafe content.
+* **Thresholds:** I set a confidence threshold (e.g., 90%) to minimize false positives while ensuring maximum security.
+</details>
 
-| Input Media | AI Analysis (Metadata) | Status |
-| :--- | :---: | :---: |
-| `street_view.jpg` | `["Car", "City", "Traffic"]` | ✅ Pass |
-| `forest.png` | `["Trees", "Nature", "Green"]` | ✅ Pass |
+<details>
+<summary><b>Phase 3: Automated Quarantine Workflow</b></summary>
 
-> **Log Trace:** `[INFO] Image processed in 369.41 ms. Billed: 370 ms.`
+This is the core "Incident Response" phase. If a violation is flagged:
+1. **Copy:** The file is moved to a private `quarantine-bucket`.
+2. **Purge:** The file is immediately deleted from the public `upload-bucket`.
+3. **Log:** A forensic record is created in **DynamoDB**.
+</details>
+
+---
+
+##  Testing & Results
+I conducted a **Live Policy Violation Test** to verify the automation. The system was tested with both compliant and non-compliant data to ensure accuracy and prevent false positives.
+
+| Scenario | Input Image | AI Label Detected | Confidence | System Outcome |
+| :--- | :--- | :--- | :--- | :--- |
+| **Safety Violation** | `test_violence.jpg` | Physical Conflict | 98.4% | ✅ **Quarantined** |
+| **Policy Compliance** | `landscape.jpg` | None | 0% | ✅ **Approved** |
+
+### **Proof of Concept Screenshots**
+*Direct evidence of the pipeline's execution:*
+
+1. **The Detection:** AI identifying the violation.  
+   ![Detection](screenshots/detection_log.png)
+2. **The Isolation:** The file being moved to the Restricted Bucket.  
+   ![Isolation](screenshots/quarantine_bucket.png)
+3. **The Alert:** The real-time security notification.  
+   ![Alert](screenshots/sns_email.png)
+
+---
+
+
+
+### Security & IAM (Least Privilege)
+To protect the infrastructure, I wrote a scoped **IAM Policy**. This ensures the Lambda function cannot access any data outside of these specific project buckets.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": ["s3:GetObject", "s3:DeleteObject", "s3:PutObject"],
+            "Resource": [
+                "arn:aws:s3:::your-upload-bucket/*",
+                "arn:aws:s3:::your-quarantine-bucket/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "rekognition:DetectModerationLabels",
+            "Resource": "*"
+        }
+    ]
+}
 
 

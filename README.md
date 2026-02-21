@@ -59,8 +59,8 @@ I conducted a **Live Policy Violation Test** to verify the automation. The syste
 
 | Scenario | Input Image | AI Label Detected | Confidence | System Outcome |
 | :--- | :--- | :--- | :--- | :--- |
-| **Safety Violation** | `test_violence.jpg` | Physical Conflict | 98.4% | ✅ **Quarantined** |
-| **Policy Compliance** | `landscape.jpg` | None | 0% | ✅ **Approved** |
+| **Safety Violation** | `boxing.jpg` | Physical Conflict | 98.4% | ✅ **Quarantined** |
+| **Policy Compliance** | `test1.jpg` | None | 0% | ✅ **Approved** |
 
 ### **Proof of Concept Screenshots**
 *Direct evidence of the pipeline's execution:*

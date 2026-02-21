@@ -66,37 +66,15 @@ I conducted a **Live Policy Violation Test** to verify the automation. The syste
 *Direct evidence of the pipeline's execution:*
 
 1. **The Detection:** AI identifying the violation.  
-   ![Detection](screenshots/detection_log.png)
+   ![Detection](screenshots/dynmodb2.0.jpg)
 2. **The Isolation:** The file being moved to the Restricted Bucket.  
-   ![Isolation](screenshots/quarantine_bucket.png)
+   ![Isolation](screenshots/s3 bucket.jpg)
 3. **The Alert:** The real-time security notification.  
-   ![Alert](screenshots/sns_email.png)
+   ![Alert](screenshots/gmail2.0.jpg)
 
 ---
 
 
 
-### Security & IAM (Least Privilege)
-To protect the infrastructure, I wrote a scoped **IAM Policy**. This ensures the Lambda function cannot access any data outside of these specific project buckets.
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": ["s3:GetObject", "s3:DeleteObject", "s3:PutObject"],
-            "Resource": [
-                "arn:aws:s3:::your-upload-bucket/*",
-                "arn:aws:s3:::your-quarantine-bucket/*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": "rekognition:DetectModerationLabels",
-            "Resource": "*"
-        }
-    ]
-}
 
 
